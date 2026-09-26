@@ -1,0 +1,49 @@
+package com.example.lotterysystem.dao.mapper;
+
+import com.example.lotterysystem.dao.dataobject.ActivityUserDO;
+import org.apache.ibatis.annotations.*;
+
+import java.util.List;
+
+/**
+ * 活动-参与人员关联表 Mapper 接口
+ * <p>
+ * 提供活动参与人员的批量插入、按条件查询和批量状态更新操作。
+ */
+@Mapper
+public interface ActivityUserMapper {
+
+    @Select("<script>" +
+            " select * from activity_user" +
+            " where activity_id = #{activityId}" +
+            " and user_id in" +
+            " <foreach collection='userIds' item='userId' open='(' separator=',' close=')' >" +
+            " #{userId}" +
+            " </foreach>" +
+            " </script>")
+    List<ActivityUserDO> batchselectByAUIds(Long activityId, List<Long> userIds);
+
+    @Update("<script>" +
+            " update activity_user set status = #{status}" +
+            " where activity_id = #{activityId}" +
+            " and user_id in" +
+            " <foreach collection='userIds' item='userId' open='(' separator=',' close=')' >" +
+            " #{userId}" +
+            " </foreach>" +
+            " </script>")
+    void batchUpdateStatus(Long activityId, List<Long> userIds, String status);
+
+
+    @Insert("<script>" +
+            " insert into activity_user (activity_id, user_id, user_name, status)" +
+            " values <foreach collection = 'items' item='item' index='index' separator=','>" +
+            " (#{item.activityId}, #{item.userId}, #{item.userName}, #{item.status})" +
+            " </foreach>" +
+            " </script>")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    int batchInsert(@Param("items") List<ActivityUserDO> activityUserDOList);
+
+
+    @Select("select * from activity_user where activity_id = #{activityId}")
+    List<ActivityUserDO> selectByActivityId(@Param("activityId") Long activityId);
+}
